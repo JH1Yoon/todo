@@ -13,6 +13,7 @@ public class TodoResponseDto {
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
+    private int commentCount;
 
     public TodoResponseDto(Todo todo) {
         this.id = todo.getId();
@@ -21,5 +22,6 @@ public class TodoResponseDto {
         this.content = todo.getContent();
         this.createdAt = todo.getCreatedAt();
         this.modifiedAt = todo.getModifiedAt();
+        this.commentCount = todo.getComments() != null ? todo.getComments().size() : 0;
     }
 }

@@ -9,8 +9,15 @@ import com.sparta.todo.entity.Todo;
 import com.sparta.todo.repository.CommentRepository;
 import com.sparta.todo.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +47,13 @@ public class TodoService {
         TodoResponseDto todoResponseDto = new TodoResponseDto(todo);
 
         return todoResponseDto;
+    }
+
+    public List<TodoResponseDto> getAllTodoPaging(Integer pageNumber, Integer pageCount) {
+        Pageable pageable = PageRequest.of(pageNumber, pageCount, Sort.by(Sort.Direction.DESC, "modifiedAt"));
+        Page<Todo> todo = todoRepository.findAll(pageable);
+
+        return todo.stream().map(TodoResponseDto::new).collect(Collectors.toList());
     }
 
     @Transactional
