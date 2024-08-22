@@ -24,7 +24,7 @@ public class Todo extends Timestamped{
     private String title;
     private String content;
 
-    @OneToMany(mappedBy = "todo")
+    @OneToMany(mappedBy = "todo", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private List<Comment> comments;
 
     public Todo(TodoRequestDto requestDto) {

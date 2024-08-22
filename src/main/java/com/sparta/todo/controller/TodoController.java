@@ -32,15 +32,21 @@ public class TodoController {
     }
 
     @GetMapping("/todo")
-    public List<TodoResponseDto> getAllTodoPaging (
+    public ResponseEntity<List<TodoResponseDto>> getAllTodoPaging(
             @RequestParam(defaultValue = "0") Integer pageNumber,
             @RequestParam(defaultValue = "10") Integer pageCount) {
-        return todoService.getAllTodoPaging(pageNumber, pageCount);
+        return ResponseEntity.status(HttpStatus.OK).body(todoService.getAllTodoPaging(pageNumber, pageCount));
     }
 
     @PutMapping("/todo/{id}")
     public ResponseEntity<TodoResponseDto> updateTodo(@PathVariable Long id, @RequestBody TodoRequestDto requestDto) {
         return ResponseEntity.status(HttpStatus.OK).body(todoService.updateTodo(id, requestDto));
+    }
+
+    @DeleteMapping("/todo/{id}")
+    public ResponseEntity<Void> deleteTodo(@PathVariable Long id) {
+        todoService.deleteTodo(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping("/todo/comment/{id}")

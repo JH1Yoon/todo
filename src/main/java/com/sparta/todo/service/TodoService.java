@@ -72,6 +72,13 @@ public class TodoService {
         return todoResponseDto;
     }
 
+    public void deleteTodo(Long id) {
+        // 해당하는 일정이 있는지 확인
+        Todo todo = findTodo(id);
+
+        todoRepository.delete(todo);
+    }
+
     @Transactional
     public CommentResponseDto createCommentToTodo(Long id, CommentRequestDto requestDto) {
         // Todo Entity가 있는지 확인
