@@ -6,11 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "Todo")
+@Table(name = "todo")
 public class Todo extends Timestamped{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +23,9 @@ public class Todo extends Timestamped{
     @Column(name = "title", nullable = false)
     private String title;
     private String content;
+
+    @OneToMany(mappedBy = "todo")
+    private List<Comment> comments;
 
     public Todo(TodoRequestDto requestDto) {
         this.username = requestDto.getUsername();

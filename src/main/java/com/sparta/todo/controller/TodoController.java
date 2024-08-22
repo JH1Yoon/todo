@@ -1,5 +1,7 @@
 package com.sparta.todo.controller;
 
+import com.sparta.todo.dto.CommentRequestDto;
+import com.sparta.todo.dto.CommentResponseDto;
 import com.sparta.todo.dto.TodoRequestDto;
 import com.sparta.todo.dto.TodoResponseDto;
 import com.sparta.todo.service.TodoService;
@@ -24,11 +26,16 @@ public class TodoController {
 
     @GetMapping("/todo/{id}")
     public ResponseEntity<TodoResponseDto> getTodo(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.OK).body( todoService.getTodo(id));
+        return ResponseEntity.status(HttpStatus.OK).body(todoService.getTodo(id));
     }
 
     @PutMapping("/todo/{id}")
     public ResponseEntity<TodoResponseDto> updateTodo(@PathVariable Long id, @RequestBody TodoRequestDto requestDto) {
         return ResponseEntity.status(HttpStatus.OK).body(todoService.updateTodo(id, requestDto));
+    }
+
+    @PostMapping("/todo/comment/{id}")
+    public ResponseEntity<CommentResponseDto> createCommentToTodo(@PathVariable Long id, @RequestBody CommentRequestDto requestDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(todoService.createCommentToTodo(id, requestDto));
     }
 }
