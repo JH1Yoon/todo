@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -24,6 +25,13 @@ public class TodoController {
     @PostMapping("/todo")
     public ResponseEntity<TodoResponseDto> createTodo(@RequestBody TodoRequestDto requestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(todoService.createTodo(requestDto));
+    }
+
+    @PostMapping("/todo/{id}/users")
+    public ResponseEntity<TodoResponseDto> addUsersToTodo(@PathVariable Long id, @RequestBody Map<String, List<Long>> request) {
+        List<Long> userIds = request.get("userIds");
+        TodoResponseDto updatedTodo = todoService.addUsersToTodo(id, userIds);
+        return ResponseEntity.ok(updatedTodo);
     }
 
     @GetMapping("/todo/{id}")

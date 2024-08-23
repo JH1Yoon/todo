@@ -6,8 +6,12 @@ import com.sparta.todo.dto.TodoRequestDto;
 import com.sparta.todo.dto.TodoResponseDto;
 import com.sparta.todo.entity.Comment;
 import com.sparta.todo.entity.Todo;
+import com.sparta.todo.entity.User;
+import com.sparta.todo.entity.UserTodo;
 import com.sparta.todo.repository.CommentRepository;
 import com.sparta.todo.repository.TodoRepository;
+import com.sparta.todo.repository.UserRepository;
+import com.sparta.todo.repository.UserTodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,19 +29,57 @@ public class TodoService {
 
     private final TodoRepository todoRepository;
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
+    private final UserTodoRepository userTodoRepository;
 
     @Transactional
     public TodoResponseDto createTodo(TodoRequestDto requestDto) {
+        // User Entity 조회
+        User user = findUser(requestDto.getUserId());
+
         // RequestDto -> Entity
         Todo todo = new Todo(requestDto);
 
         // DB 저장
-        Todo newtodo =  todoRepository.save(todo);
+        Todo newTodo = todoRepository.save(todo);
 
-        // Entity -> ResponseDto
-        TodoResponseDto todoResponseDto = new TodoResponseDto(newtodo);
+        // UserTodo 관계 설정
+        UserTodo userTodo = new UserTodo();
+        userTodo.setTodo(newTodo);
+        userTodo.setUser(user);
+        userTodoRepository.save(userTodo);
 
-        return todoResponseDto;
+        // 추가 담당 유저 설정
+        for (Long additionalUserId : requestDto.getUserIds()) {
+            User additionalUser = findUser(additionalUserId);
+            UserTodo additionalUserTodo = new UserTodo();
+            additionalUserTodo.setTodo(newTodo);
+            additionalUserTodo.setUser(additionalUser);
+            userTodoRepository.save(additionalUserTodo);
+        }
+
+        return new TodoResponseDto(newTodo);
+    }
+
+    @Transactional
+    public TodoResponseDto addUsersToTodo(Long todoId, List<Long> userIds) {
+        // 해당 일정 조회
+        Todo todo = findTodo(todoId);
+
+        // 추가 담당 유저 설정
+        for (Long userId : userIds) {
+            User user = findUser(userId);
+            UserTodo userTodo = new UserTodo();
+            userTodo.setTodo(todo);
+            userTodo.setUser(user);
+
+            // 중복된 담당 유저 추가 방지
+            if (userTodoRepository.findByTodoAndUser(todo, user) == null) {
+                userTodoRepository.save(userTodo);
+            }
+        }
+
+        return new TodoResponseDto(findTodo(todoId));
     }
 
     public TodoResponseDto getTodo(Long id) {
@@ -61,15 +103,29 @@ public class TodoService {
         // 해당하는 일정이 있는지 확인
         Todo todo = findTodo(id);
 
-        // Entity 업데이트
+        // 일정 업데이트
         todo.update(requestDto);
+
+        // 기존 담당 유저 제거
+        userTodoRepository.deleteByTodo(todo);
+
+        // 새로운 담당 유저 추가
+        for (Long userId : requestDto.getUserIds()) {
+            User user = findUser(userId);
+            UserTodo userTodo = new UserTodo();
+            userTodo.setTodo(todo);
+            userTodo.setUser(user);
+
+            // 중복된 담당 유저 추가 방지
+            if (userTodoRepository.findByTodoAndUser(todo, user) == null) {
+                userTodoRepository.save(userTodo);
+            }
+        }
 
         // 변경된 일정 DB 저장
         todoRepository.save(todo);
 
-        TodoResponseDto todoResponseDto = new TodoResponseDto(todo);
-
-        return todoResponseDto;
+        return new TodoResponseDto(todo);
     }
 
     public void deleteTodo(Long id) {
@@ -101,5 +157,9 @@ public class TodoService {
     private Todo findTodo(Long id) {
         return todoRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("선택한 일정은 존재하지 않습니다."));
+    }
+
+    private User findUser(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 담담자가 존재하지 않습니다."));
     }
 }
