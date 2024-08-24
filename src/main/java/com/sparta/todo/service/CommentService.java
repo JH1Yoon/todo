@@ -19,6 +19,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TodoRepository todoRepository;
 
+    // 특정 id에 해당하는 일정의 댓글 생성
     @Transactional
     public CommentResponseDto createComment(Long todoId, CommentRequestDto requestDto) {
         // 해당하는 일정이 있는지 확인
@@ -41,6 +42,7 @@ public class CommentService {
 
     }
 
+    // 특정 id에 해당하는 댓글 조회
     public CommentResponseDto getComment(Long id) {
         // 해당하는 댓글이 있는지 확인
         Comment comment = findComment(id);
@@ -51,10 +53,12 @@ public class CommentService {
         return commentResponseDto;
     }
 
+    // 모든 댓글 조회
     public List<CommentResponseDto> getAllComments() {
         return commentRepository.findAllByOrderByModifiedAtDesc().stream().map(CommentResponseDto::new).toList();
     }
 
+    // 특정 id에 해당하는 댓글 수정
     @Transactional
     public CommentResponseDto updateComment(Long id, CommentRequestDto requestDto) {
         // 해당하는 댓글이 있는지 확인
@@ -72,6 +76,7 @@ public class CommentService {
         return commentResponseDto;
     }
 
+    // 특정 id에 해당하는 댓글 삭제
     @Transactional
     public void deleteComment(Long id) {
         // 해당하는 댓글이 있는지 확인

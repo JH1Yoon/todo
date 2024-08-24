@@ -1,6 +1,5 @@
 package com.sparta.todo.entity;
 
-import com.sparta.todo.dto.TodoRequestDto;
 import com.sparta.todo.dto.UserRequestDto;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity

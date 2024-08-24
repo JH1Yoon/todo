@@ -32,6 +32,7 @@ public class TodoService {
     private final UserRepository userRepository;
     private final UserTodoRepository userTodoRepository;
 
+    // 일정 생성
     @Transactional
     public TodoResponseDto createTodo(TodoRequestDto requestDto) {
         // User Entity 조회
@@ -66,6 +67,7 @@ public class TodoService {
         return new TodoResponseDto(newTodo, false);
     }
 
+    // 생성된 일정에 담당 유저 추가
     @Transactional
     public TodoResponseDto addUsersToTodo(Long todoId, List<Long> userIds) {
         // 해당 일정 조회
@@ -87,6 +89,7 @@ public class TodoService {
         return new TodoResponseDto(findTodo(todoId), false);
     }
 
+    // 특정 id에 해당하는 일정 조회
     public TodoResponseDto getTodo(Long id) {
         // 해당하는 일정이 있는지 확인
         Todo todo = findTodo(id);
@@ -97,6 +100,7 @@ public class TodoService {
         return new TodoResponseDto(todo, true);
     }
 
+    // 모든 일정 조회
     public List<TodoResponseDto> getAllTodoPaging(Integer pageNumber, Integer pageCount) {
         Pageable pageable = PageRequest.of(pageNumber, pageCount, Sort.by(Sort.Direction.DESC, "modifiedAt"));
         Page<Todo> todos = todoRepository.findAll(pageable);
@@ -106,6 +110,7 @@ public class TodoService {
                 .collect(Collectors.toList());
     }
 
+    // 특정 id에 해당하는 일정 수정
     @Transactional
     public TodoResponseDto updateTodo(Long id, TodoRequestDto requestDto) {
         // 해당하는 일정이 있는지 확인
@@ -136,6 +141,7 @@ public class TodoService {
         return new TodoResponseDto(todo, false);
     }
 
+    // 특정 id에 해당하는 일정 삭제
     @Transactional
     public void deleteTodo(Long id) {
         // 해당하는 일정이 있는지 확인
@@ -144,6 +150,7 @@ public class TodoService {
         todoRepository.delete(todo);
     }
 
+    // 특정 id에 해당하는 일정에 댓글 생성
     @Transactional
     public CommentResponseDto createCommentToTodo(Long id, CommentRequestDto requestDto) {
         // Todo Entity가 있는지 확인
