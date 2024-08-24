@@ -50,15 +50,20 @@ public class TodoService {
         userTodoRepository.save(userTodo);
 
         // 추가 담당 유저 설정
-        for (Long additionalUserId : requestDto.getUserIds()) {
-            User additionalUser = findUser(additionalUserId);
-            UserTodo additionalUserTodo = new UserTodo();
-            additionalUserTodo.setTodo(newTodo);
-            additionalUserTodo.setUser(additionalUser);
-            userTodoRepository.save(additionalUserTodo);
+        if (requestDto.getUserIds() != null) {
+            List<User> additionalUsers = userRepository.findAllById(requestDto.getUserIds());
+            for (User additionalUser : additionalUsers) {
+                // 중복된 담당 유저 추가 방지
+                if (userTodoRepository.findByTodoAndUser(newTodo, additionalUser) == null) {
+                    UserTodo additionalUserTodo = new UserTodo();
+                    additionalUserTodo.setTodo(newTodo);
+                    additionalUserTodo.setUser(additionalUser);
+                    userTodoRepository.save(additionalUserTodo);
+                }
+            }
         }
 
-        return new TodoResponseDto(newTodo);
+        return new TodoResponseDto(newTodo, false);
     }
 
     @Transactional
@@ -79,23 +84,26 @@ public class TodoService {
             }
         }
 
-        return new TodoResponseDto(findTodo(todoId));
+        return new TodoResponseDto(findTodo(todoId), false);
     }
 
     public TodoResponseDto getTodo(Long id) {
         // 해당하는 일정이 있는지 확인
         Todo todo = findTodo(id);
 
-        TodoResponseDto todoResponseDto = new TodoResponseDto(todo);
+        // 지연 로딩을 강제로 트리거하여 userTodos를 로딩
+        todo.getUserTodos().size();
 
-        return todoResponseDto;
+        return new TodoResponseDto(todo, true);
     }
 
     public List<TodoResponseDto> getAllTodoPaging(Integer pageNumber, Integer pageCount) {
         Pageable pageable = PageRequest.of(pageNumber, pageCount, Sort.by(Sort.Direction.DESC, "modifiedAt"));
-        Page<Todo> todo = todoRepository.findAll(pageable);
+        Page<Todo> todos = todoRepository.findAll(pageable);
 
-        return todo.stream().map(TodoResponseDto::new).collect(Collectors.toList());
+        return todos.stream()
+                .map(todo -> new TodoResponseDto(todo, false))
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -125,9 +133,10 @@ public class TodoService {
         // 변경된 일정 DB 저장
         todoRepository.save(todo);
 
-        return new TodoResponseDto(todo);
+        return new TodoResponseDto(todo, false);
     }
 
+    @Transactional
     public void deleteTodo(Long id) {
         // 해당하는 일정이 있는지 확인
         Todo todo = findTodo(id);
