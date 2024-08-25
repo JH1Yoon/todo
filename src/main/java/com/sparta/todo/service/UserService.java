@@ -1,8 +1,10 @@
 package com.sparta.todo.service;
 
+import com.sparta.todo.config.PasswordEncoder;
 import com.sparta.todo.dto.UserRequestDto;
 import com.sparta.todo.dto.UserResponseDto;
 import com.sparta.todo.entity.User;
+import com.sparta.todo.jwt.JwtUtil;
 import com.sparta.todo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,22 +17,32 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     // 유저 생성
     @Transactional
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
-        User user = new User(userRequestDto);
+        User user = new User(
+                userRequestDto.getUsername(),
+                userRequestDto.getEmail(),
+                passwordEncoder.encode(userRequestDto.getPassword())
+        );
 
         User newUser = userRepository.save(user);
 
-        return new UserResponseDto(newUser);
+        // JWT 생성
+        String token = jwtUtil.createToken(user.getUsername());
+
+
+        return new UserResponseDto(newUser, token);
     }
 
     // 특정 id에 해당하는 유저 조회
     public UserResponseDto getUser(Long id) {
         User user = findUser(id);
 
-        return new UserResponseDto(user);
+        return new UserResponseDto(user, jwtUtil.createToken(user.getUsername()));
     }
 
     // 모든 유저 조회
@@ -46,6 +58,10 @@ public class UserService {
         User user = findUser(id);
 
         user.update(userRequestDto);
+
+        if (userRequestDto.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
+        }
 
         userRepository.save(user);
 

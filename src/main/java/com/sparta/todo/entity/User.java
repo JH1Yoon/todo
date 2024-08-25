@@ -25,12 +25,16 @@ public class User extends Timestamped {
     @Column(name = "email", nullable = false)
     private String email;
 
+    @Column(name = "password", nullable = false)
+    private String password;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserTodo> userTodos = new HashSet<>();
 
-    public User(UserRequestDto requestDto) {
-        this.username = requestDto.getUsername();
-        this.email = requestDto.getEmail();
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 
     public void update(UserRequestDto requestDto) {
