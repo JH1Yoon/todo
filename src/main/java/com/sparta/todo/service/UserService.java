@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,11 +24,25 @@ public class UserService {
     // 유저 생성
     @Transactional
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
+        String username = userRequestDto.getUsername();
+        String password = passwordEncoder.encode(userRequestDto.getPassword());
+
+        // 회원 중복 확인
+        Optional<User> checkUsername = userRepository.findByUsername(username);
+        if (checkUsername.isPresent()) {
+            throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
+        }
+
+        // email 중복확인
+        String email = userRequestDto.getEmail();
+        Optional<User> checkEmail = userRepository.findByEmail(email);
+        if (checkEmail.isPresent()) {
+            throw new IllegalArgumentException("중복된 Email 입니다.");
+        }
+
+
         User user = new User(
-                userRequestDto.getUsername(),
-                userRequestDto.getEmail(),
-                passwordEncoder.encode(userRequestDto.getPassword())
-        );
+                username, email, password);
 
         User newUser = userRepository.save(user);
 
@@ -36,6 +51,18 @@ public class UserService {
 
 
         return new UserResponseDto(newUser, token);
+    }
+
+    // 이메일과 비밀번호로 유저 인증
+    public User authenticate(String email, String rawPassword) throws Exception {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception("Invalid email or password"));
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new Exception("Invalid email or password");
+        }
+
+        return user;
     }
 
     // 특정 id에 해당하는 유저 조회

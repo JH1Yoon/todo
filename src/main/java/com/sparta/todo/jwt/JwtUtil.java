@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +20,11 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
+    // Header KEY 값
     public static final String AUTHORIZATION_HEADER = "Authorization";
+    // Token 식별자
     public static final String BEARER_PREFIX = "Bearer ";
+    // 토큰 만료시간
     private final long TOKEN_TIME = 60 * 60 * 1000L; // 60분
 
     @Value("${jwt.secret.key}")
@@ -34,6 +38,7 @@ public class JwtUtil {
     public void init() {
         byte[] bytes = Base64.getDecoder().decode(secretKey);
         key = Keys.hmacShaKeyFor(bytes);
+        logger.info("Secret key initialized successfully");
     }
 
     public String createToken(String username) {
@@ -48,17 +53,7 @@ public class JwtUtil {
                         .compact();
     }
 
-    public void addJwtToCookie(String token, HttpServletResponse res) {
-        try {
-            token = URLEncoder.encode(token, "utf-8").replaceAll("\\+", "%20");
-            Cookie cookie = new Cookie(AUTHORIZATION_HEADER, token);
-            cookie.setPath("/");
-            res.addCookie(cookie);
-        } catch (UnsupportedEncodingException e) {
-            logger.error(e.getMessage());
-        }
-    }
-
+    // JWT 토큰 substring
     public String substringToken(String tokenValue) {
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
             return tokenValue.substring(7);
@@ -67,6 +62,8 @@ public class JwtUtil {
         throw new NullPointerException("Not Found Token");
     }
 
+
+    // 토큰 검증
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -85,5 +82,10 @@ public class JwtUtil {
 
     public Claims getUserInfoFromToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+    }
+
+    public String getTokenFromRequest(HttpServletRequest req) {
+        String header = req.getHeader(AUTHORIZATION_HEADER);
+        return header;
     }
 }
