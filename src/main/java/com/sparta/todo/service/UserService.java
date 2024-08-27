@@ -4,9 +4,12 @@ import com.sparta.todo.config.PasswordEncoder;
 import com.sparta.todo.dto.UserRequestDto;
 import com.sparta.todo.dto.UserResponseDto;
 import com.sparta.todo.entity.User;
+import com.sparta.todo.entity.UserRoleEnum;
 import com.sparta.todo.jwt.JwtUtil;
 import com.sparta.todo.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    // ADMIN_TOKEN
+    private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
     // 유저 생성
     @Transactional
@@ -40,17 +49,37 @@ public class UserService {
             throw new IllegalArgumentException("중복된 Email 입니다.");
         }
 
+        // 사용자 ROLE 확인
+        UserRoleEnum role = UserRoleEnum.USER;  // 기본값: USER
+        if (userRequestDto.isAdmin()) {
+            if (!ADMIN_TOKEN.equals(userRequestDto.getAdminToken())) {
+                throw new IllegalArgumentException("관리자 암호가 틀려 등록이 불가능합니다.");
+            }
+            role = UserRoleEnum.ADMIN;
+        }
 
-        User user = new User(
-                username, email, password);
 
+        User user = new User(username, email, password, role);
         User newUser = userRepository.save(user);
 
         // JWT 생성
-        String token = jwtUtil.createToken(user.getUsername());
-
+        String token = jwtUtil.createToken(user.getUsername(), role);
 
         return new UserResponseDto(newUser, token);
+    }
+
+    // 로그인 처리
+    public UserResponseDto login(String email, String rawPassword) throws Exception {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception("Invalid email or password"));
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new Exception("Invalid email or password");
+        }
+
+        String token = jwtUtil.createToken(user.getUsername(), user.getRole());
+
+        return new UserResponseDto(user, token);
     }
 
     // 이메일과 비밀번호로 유저 인증
@@ -69,7 +98,7 @@ public class UserService {
     public UserResponseDto getUser(Long id) {
         User user = findUser(id);
 
-        return new UserResponseDto(user, jwtUtil.createToken(user.getUsername()));
+        return new UserResponseDto(user);
     }
 
     // 모든 유저 조회
@@ -91,6 +120,9 @@ public class UserService {
         }
 
         userRepository.save(user);
+
+        // 엔티티를 새로 고침
+        entityManager.refresh(user);
 
         return new UserResponseDto(user);
     }

@@ -41,7 +41,7 @@ public class AuthFilter implements Filter {
         log.info("Extracted Token Value: {}", tokenValue);
 
         if (StringUtils.hasText(url) &&
-                (url.startsWith("/api/auth/signup") || url.startsWith("/api/auth/login"))
+                (url.startsWith("/api/user/signup") || url.startsWith("/api/user/login"))
         ) {
             log.info("인증 처리를 하지 않는 URL : " + url);
             chain.doFilter(request, response); // 다음 Filter로 이동
@@ -65,6 +65,7 @@ public class AuthFilter implements Filter {
                 );
 
                 request.setAttribute("user", user);
+                request.setAttribute("role", info.get(JwtUtil.AUTHORIZATION_KEY));
                 chain.doFilter(request, response); // 다음 Filter로 이동
             } else {
                 httpServletResponse.setStatus(HttpStatus.BAD_REQUEST.value());

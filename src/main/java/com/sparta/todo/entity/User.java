@@ -28,13 +28,18 @@ public class User extends Timestamped {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private UserRoleEnum role;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserTodo> userTodos = new HashSet<>();
 
-    public User(String username, String email, String password) {
+    public User(String username, String email, String password, UserRoleEnum role) {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
 
     public void update(UserRequestDto requestDto) {
