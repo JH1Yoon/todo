@@ -24,15 +24,19 @@ public class Todo extends Timestamped{
     private String title;
     private String content;
 
+    @Column(name = "weather")
+    private String weather;
+
     @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> comments;
 
     @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<UserTodo> userTodos = new HashSet<>();
 
-    public Todo(TodoRequestDto requestDto) {
-        this.title = requestDto.getTitle();
-        this.content = requestDto.getContent();
+    public Todo(String title, String content, String weather) {
+        this.title = title;
+        this.content = content;
+        this.weather = weather;
     }
 
     public void update(TodoRequestDto requestDto) {

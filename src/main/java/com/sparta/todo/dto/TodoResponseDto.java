@@ -14,6 +14,7 @@ public class TodoResponseDto {
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
+    private String weather;
     private Set<TodoUserResponseDto> users;
     private int commentCount;
 
@@ -23,6 +24,7 @@ public class TodoResponseDto {
         this.content = todo.getContent();
         this.createdAt = todo.getCreatedAt();
         this.modifiedAt = todo.getModifiedAt();
+        this.weather =  todo.getWeather();
         if (includeUsers) {
             // 지연 로딩을 강제로 트리거하여 userTodos를 로딩
             todo.getUserTodos().size();

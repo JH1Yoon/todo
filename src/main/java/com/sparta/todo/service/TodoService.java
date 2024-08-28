@@ -31,15 +31,19 @@ public class TodoService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final UserTodoRepository userTodoRepository;
+    private final WeatherService weatherService;
 
     // 일정 생성
     @Transactional
     public TodoResponseDto createTodo(TodoRequestDto requestDto) {
+        // 날씨 정보 조회
+        String weather = weatherService.getWeatherToday();
+
         // User Entity 조회
         User user = findUser(requestDto.getUserId());
 
         // RequestDto -> Entity
-        Todo todo = new Todo(requestDto);
+        Todo todo = new Todo(requestDto.getTitle(), requestDto.getContent(), weather);
 
         // DB 저장
         Todo newTodo = todoRepository.save(todo);

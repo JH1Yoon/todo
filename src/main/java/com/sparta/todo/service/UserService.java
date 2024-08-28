@@ -24,9 +24,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    @Autowired
-    private EntityManager entityManager;
-
     // ADMIN_TOKEN
     private final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
@@ -120,9 +117,6 @@ public class UserService {
         }
 
         userRepository.save(user);
-
-        // 엔티티를 새로 고침
-        entityManager.refresh(user);
 
         return new UserResponseDto(user);
     }
