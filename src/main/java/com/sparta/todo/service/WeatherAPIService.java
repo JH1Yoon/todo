@@ -1,12 +1,13 @@
 package com.sparta.todo.service;
+
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.json.JSONArray;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -15,11 +16,11 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j(topic = "Weather API")
 @Service
-public class WeatherService {
+public class WeatherAPIService {
 
     private final RestTemplate restTemplate;
 
-    public WeatherService(RestTemplateBuilder builder) {
+    public WeatherAPIService(RestTemplateBuilder builder) {
         this.restTemplate = builder.build();
     }
 
@@ -43,7 +44,7 @@ public class WeatherService {
         // JSON 응답 처리
         JSONArray weatherArray = new JSONArray(responseEntity);
 
-        for (int i=0; i<weatherArray.length(); i++) {
+        for (int i = 0; i < weatherArray.length(); i++) {
             JSONObject weatherObject = weatherArray.getJSONObject(i);
             String date = weatherObject.getString("date");
             String weather = weatherObject.getString("weather");
