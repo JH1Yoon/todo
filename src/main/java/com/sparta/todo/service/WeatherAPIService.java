@@ -1,5 +1,7 @@
 package com.sparta.todo.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -12,6 +14,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 
 
 @Slf4j(topic = "Weather API")
@@ -19,9 +23,11 @@ import java.time.format.DateTimeFormatter;
 public class WeatherAPIService {
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
-    public WeatherAPIService(RestTemplateBuilder builder) {
+    public WeatherAPIService(RestTemplateBuilder builder, ObjectMapper objectMapper) {
         this.restTemplate = builder.build();
+        this.objectMapper = objectMapper;
     }
 
     public String getWeatherToday() {
@@ -41,18 +47,22 @@ public class WeatherAPIService {
         // 현재 날짜 가져오기
         String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("MM-dd"));
 
-        // JSON 응답 처리
-        JSONArray weatherArray = new JSONArray(responseEntity);
+        try {
+            // Json 배열을 List<Map>으로 변환
+            List<Map<String, String>> weatherList = objectMapper.readValue(responseEntity, new TypeReference<>() {});
 
-        for (int i = 0; i < weatherArray.length(); i++) {
-            JSONObject weatherObject = weatherArray.getJSONObject(i);
-            String date = weatherObject.getString("date");
-            String weather = weatherObject.getString("weather");
+            // 날시 정보 확인
+            for (Map<String, String> weatherMap : weatherList) {
+                String date = weatherMap.get("date");
+                String weather = weatherMap.get("weather");
 
-            // 현재 날짜와 일치하는 지 확인
-            if (todayDate.equals(date)) {
-                return weather;
+                // 현재 날짜와 일치하는 지 확인
+                if (todayDate.equals(date)) {
+                    return weather;
+                }
             }
+        } catch (Exception e) {
+            log.error("Error parsing JSON response", e);
         }
 
         return "No weather data about date in Weather API";
