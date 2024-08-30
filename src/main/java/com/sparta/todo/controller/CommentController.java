@@ -3,6 +3,7 @@ package com.sparta.todo.controller;
 import com.sparta.todo.dto.CommentRequestDto;
 import com.sparta.todo.dto.CommentResponseDto;
 import com.sparta.todo.entity.UserRoleEnum;
+import com.sparta.todo.jwt.AuthUtil;
 import com.sparta.todo.service.CommentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -24,8 +25,7 @@ public class CommentController {
     // 특정 id에 해당하는 일정의 댓글 생성
     @PostMapping("/comment/{todoId}")
     public ResponseEntity<CommentResponseDto> createComment(@PathVariable Long todoId, @RequestBody CommentRequestDto requestDto, HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -35,8 +35,7 @@ public class CommentController {
     // 특정 id에 해당하는 댓글 조회
     @GetMapping("/comment/{id}")
     public ResponseEntity<CommentResponseDto> getComment(@PathVariable Long id, HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -46,8 +45,7 @@ public class CommentController {
     // 모든 댓글 조회
     @GetMapping("/comment")
     public ResponseEntity<List<CommentResponseDto>> getAllComments(HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -57,8 +55,7 @@ public class CommentController {
     // 특정 id에 해당하는 댓글 수정
     @PutMapping("/comment/{id}")
     public ResponseEntity<CommentResponseDto> updateComment(@PathVariable Long id, @RequestBody CommentRequestDto requestDto, HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -68,8 +65,7 @@ public class CommentController {
     // 특정 id에 해당하는 댓글 삭제
     @DeleteMapping("/comment/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id, HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

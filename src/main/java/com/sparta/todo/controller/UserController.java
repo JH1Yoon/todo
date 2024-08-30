@@ -5,6 +5,7 @@ import com.sparta.todo.dto.LoginResponseDto;
 import com.sparta.todo.dto.UserRequestDto;
 import com.sparta.todo.dto.UserResponseDto;
 import com.sparta.todo.entity.UserRoleEnum;
+import com.sparta.todo.jwt.AuthUtil;
 import com.sparta.todo.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -53,8 +54,7 @@ public class UserController {
     // 특정 id에 해당하는 유저 조회
     @GetMapping("/user/{id}")
     public ResponseEntity<UserResponseDto> getUser(@PathVariable Long id, HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -64,8 +64,7 @@ public class UserController {
     // 모든 유저 조회
     @GetMapping("/user")
     public ResponseEntity<List<UserResponseDto>> getAllUser(HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -75,8 +74,7 @@ public class UserController {
     // 특정 id에 해당하는 유저 수정
     @PutMapping("/user/{id}")
     public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id, @RequestBody UserRequestDto userRequestDto, HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -86,8 +84,7 @@ public class UserController {
     // 특정 id에 해당하는 유저 삭제
     @DeleteMapping("/user/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id, HttpServletRequest httpServletRequest) {
-        String role = (String) httpServletRequest.getAttribute("role");
-        if (role == null || (!UserRoleEnum.USER.getAuthority().equals(role) && !UserRoleEnum.ADMIN.getAuthority().equals(role))) {
+        if (!AuthUtil.hasAnyRole(httpServletRequest, UserRoleEnum.USER, UserRoleEnum.ADMIN)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
